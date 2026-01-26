@@ -27,7 +27,7 @@ def load_pdf_to_disk(file: UploadFile = File(...)) -> MetaFile:
     try:
         file_path = os.path.join(UPLOAD_DIR, file.filename)
 
-        with open(file_path, "wb", encoding="utf-8") as buffer:
+        with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
     except Exception as e:
         raise HTTPException(
