@@ -47,14 +47,12 @@ async def load_pdf_to_disk(file: UploadFile) -> MetaFile:
         detail="file saved."
     )
 
-
 def clean_text(raw_text: str) -> str:
 
     text = raw_text.replace("\n", " ")
     text = re.sub(r"\s+", " ", text).strip()
 
     return text
-
 
 def pdf_to_text(file_info: MetaFile) -> list[PageText]:
 
@@ -77,10 +75,9 @@ def pdf_to_text(file_info: MetaFile) -> list[PageText]:
 
     return pages
 
-async def ingest_file(file: UploadFile = File(...)) -> str:
+async def ingest_file(file: UploadFile = File(...)) -> list[PageText]:
 
     meta = await load_pdf_to_disk(file)
     text = pdf_to_text(meta)
-    print("......", text)
 
-    return text[1].text
+    return text
