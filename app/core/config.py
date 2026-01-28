@@ -21,3 +21,9 @@ class MetaFile(BaseModel):
 class PageText(BaseModel):
     page: int
     text: str
+    file_name: str
+
+class ChunkText(BaseModel):
+    page: int
+    text: str
+    file_name: str

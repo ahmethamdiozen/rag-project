@@ -1,7 +1,7 @@
 from fastapi import UploadFile, File, HTTPException, status
 import os
 import shutil
-from app.core.config import MetaFile, PageText
+from app.core.config import MetaFile, PageText, ChunkText
 from pypdf import PdfReader
 from pathlib import Path
 from app.core.config import UPLOAD_DIR
@@ -41,7 +41,7 @@ async def load_pdf_to_disk(file: UploadFile) -> MetaFile:
         )
     
     return MetaFile(
-        file_name= file.filename,
+        file_name=file.filename,
         content_type=file.content_type,
         file_path=path,
         detail="file saved."
@@ -57,7 +57,7 @@ def clean_text(raw_text: str) -> str:
 def pdf_to_text(file_info: MetaFile) -> list[PageText]:
 
     reader = PdfReader(str(file_info.file_path))
-    pages: list[PageText] = []
+    texts: list[PageText] = []
 
     for i, page in enumerate(reader.pages):
         raw_text = page.extract_text()
@@ -68,16 +68,48 @@ def pdf_to_text(file_info: MetaFile) -> list[PageText]:
         if not cleaned_text:
             continue
 
-        pages.append(PageText(
-            page= i+1,
-            text=cleaned_text
+        texts.append(PageText(
+            page=i+1,
+            text=cleaned_text,
+            file_name=file_info.file_name
         ))
 
-    return pages
+    return texts
 
-async def ingest_file(file: UploadFile = File(...)) -> list[PageText]:
+async def ingest_file(file: UploadFile = File(...)) -> list[ChunkText]:
 
     meta = await load_pdf_to_disk(file)
     text = pdf_to_text(meta)
+    chunk = page_text_to_chunk(text)
 
-    return text
+    return chunk
+
+def chunk_text(text: str, chunk_len: int, overlap_len) -> list[str]:
+    chunks = []
+    start = 0
+
+    while start < len(text):
+        end = start + chunk_len
+        chunk = text[start:end]
+        chunks.append(chunk)
+        start = end - overlap_len
+
+    return chunks
+
+def page_text_to_chunk(pages: list[PageText]) -> list[ChunkText]:
+    file_name = pages[0].file_name
+    chunks: list[ChunkText] = []
+
+    for page in pages:
+        page_chunks = chunk_text(page.text)
+
+        for chunk in page_chunks:
+            chunks.append(
+                ChunkText(
+                    text=chunk,
+                    page=page.page,
+                    file_name=file_name
+                )
+            )
+    
+    return chunks
