@@ -3,14 +3,18 @@ import os
 from pathlib import Path
 from pydantic import BaseModel
 from openai import OpenAI
+import chromadb
 load_dotenv()
 
-OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 BASE_DIR = Path(__file__).resolve().parents[2]
 UPLOAD_DIR = BASE_DIR / "data" / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+CHROMA_DIR = BASE_DIR / "data" / "chroma"
+CHROMA_DIR.mkdir(parents=True, exist_ok=True)
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+openai_client = OpenAI(api_key=OPENAI_API_KEY)
+chroma_client = chromadb.PersistentClient(path=CHROMA_DIR)
 
 class MetaFile(BaseModel):
     file_name: str
@@ -19,7 +23,6 @@ class MetaFile(BaseModel):
     detail: str = "None"
 
     model_config = {"arbitrary_types_allowed": "True"}
-
 
 class PageText(BaseModel):
     page: int

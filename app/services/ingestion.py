@@ -6,7 +6,8 @@ from pypdf import PdfReader
 from pathlib import Path
 from app.core.config import UPLOAD_DIR
 import re
-
+from app.services.embedding import embed_texts
+from app.services.vectorstore import save_to_chroma
 
 async def load_pdf_to_disk(file: UploadFile) -> MetaFile:
 
@@ -76,15 +77,7 @@ def pdf_to_text(file_info: MetaFile) -> list[PageText]:
 
     return texts
 
-async def ingest_file(file: UploadFile = File(...)) -> list[ChunkText]:
-
-    meta = await load_pdf_to_disk(file)
-    text = pdf_to_text(meta)
-    chunk = page_text_to_chunk(text)
-
-    return chunk
-
-def chunk_text(text: str, chunk_len: int, overlap_len) -> list[str]:
+def chunk_text(text: str, chunk_len: int = 600, overlap_len = 100) -> list[str]:
     chunks = []
     start = 0
 
@@ -96,7 +89,7 @@ def chunk_text(text: str, chunk_len: int, overlap_len) -> list[str]:
 
     return chunks
 
-def page_text_to_chunk(pages: list[PageText]) -> list[ChunkText]:
+def page_to_chunk(pages: list[PageText]) -> list[ChunkText]:
     file_name = pages[0].file_name
     chunks: list[ChunkText] = []
 
@@ -113,3 +106,28 @@ def page_text_to_chunk(pages: list[PageText]) -> list[ChunkText]:
             )
     
     return chunks
+
+async def ingest_file(file: UploadFile = File(...)):
+
+    meta = await load_pdf_to_disk(file)
+    pages = pdf_to_text(meta)
+    chunks = page_to_chunk(pages)
+
+    texts = [c.text for c in chunks]
+
+    metadatas = [
+        {
+        "file_name": meta.file_name,
+        "page": c.page
+    } for c in chunks
+    ]
+
+    embeddings = embed_texts(texts=texts)
+
+    save_to_chroma(
+        texts=texts, 
+        embeddings=embeddings, 
+        metadatas=metadatas
+    )
+
+    return {"chunks": len(chunks)}
