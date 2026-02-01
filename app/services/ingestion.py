@@ -1,9 +1,7 @@
 from fastapi import UploadFile, File, HTTPException, status
-import os
 import shutil
 from app.core.config import MetaFile, PageText, ChunkText
 from pypdf import PdfReader
-from pathlib import Path
 from app.core.config import UPLOAD_DIR
 import re
 from app.services.embedding import embed_texts

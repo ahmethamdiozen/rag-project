@@ -1,4 +1,3 @@
-import chromadb
 from app.core.config import chroma_client
 
 collection = chroma_client.get_or_create_collection(name="Docs")
