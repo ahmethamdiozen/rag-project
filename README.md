@@ -49,7 +49,7 @@ The system ensures that LLM responses are **grounded strictly in retrieved docum
 - OpenAI API (Embeddings & Chat Completions)  
 - ChromaDB  
 - pypdf  
-- Git  
+- Pydantic  
 
 ---
 
