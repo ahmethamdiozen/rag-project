@@ -6,6 +6,9 @@ from app.core.config import UPLOAD_DIR
 import re
 from app.services.embedding import embed_texts
 from app.services.vectorstore import save_to_chroma
+import hashlib
+from pathlib import Path
+from app.core.config import collection
 
 async def load_pdf_to_disk(file: UploadFile) -> MetaFile:
 
@@ -87,7 +90,27 @@ def chunk_text(text: str, chunk_len: int = 600, overlap_len = 100) -> list[str]:
 
     return chunks
 
+def compute_file_hash(file_path: Path) -> str:
+    hasher = hashlib.sha256()
+
+    with  file_path.open("rb") as file:
+        for chunk in iter(lambda: file.read(8192), b""):
+            hasher.update(chunk)
+
+    return hasher.hexdigest()
+
+def is_file_already_ingested(file_hash: str) -> bool:
+    result = collection.get(
+        where={"file_hash": file_hash},
+        limit=1
+    )
+    return len(result["ids"]) > 0
+
 def page_to_chunk(pages: list[PageText]) -> list[ChunkText]:
+
+    if not pages:
+        return []
+    
     file_name = pages[0].file_name
     chunks: list[ChunkText] = []
 
@@ -108,15 +131,30 @@ def page_to_chunk(pages: list[PageText]) -> list[ChunkText]:
 async def ingest_file(file: UploadFile = File(...)):
 
     meta = await load_pdf_to_disk(file)
+    file_hash = compute_file_hash(meta.file_path)
+
+    if is_file_already_ingested(file_hash):
+        return {
+            "status": "skipped",
+            "message": "File already ingested."
+        }
+    
     pages = pdf_to_text(meta)
     chunks = page_to_chunk(pages)
+
+    if not chunks:
+        return {
+            "status": "skipped",
+            "message": "No text chunks extracted"
+        }
 
     texts = [c.text for c in chunks]
 
     metadatas = [
         {
         "file_name": meta.file_name,
-        "page": c.page
+        "page": c.page,
+        "file_hash": file_hash
     } for c in chunks
     ]
 
@@ -128,4 +166,6 @@ async def ingest_file(file: UploadFile = File(...)):
         metadatas=metadatas
     )
 
-    return {"chunks": len(chunks)}
+    return {
+        "status": "ingested",
+        "chunks": len(chunks)}

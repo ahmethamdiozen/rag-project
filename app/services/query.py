@@ -1,9 +1,7 @@
 from app.services.embedding import embed_query
 from app.services.vectorstore import query_chroma
 from app.services.rag import ask_llm, build_context
-from app.core.config import chroma_client
-
-collection = chroma_client.get_or_create_collection(name="Docs")
+from app.core.config import collection
 
 def answer_question(question: str) -> str:
 

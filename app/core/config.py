@@ -15,6 +15,7 @@ CHROMA_DIR.mkdir(parents=True, exist_ok=True)
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
 chroma_client = chromadb.PersistentClient(path=CHROMA_DIR)
+collection = chroma_client.get_or_create_collection(name="Docs")
 
 class MetaFile(BaseModel):
     file_name: str
