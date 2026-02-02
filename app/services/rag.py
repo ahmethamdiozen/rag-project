@@ -29,8 +29,12 @@ Question:
     return response.choices[0].message.content
 
 
-def build_context(chroma_result) -> str:
-    documents = chroma_result["documents"][0]
+def build_context(chunks: list[dict]) -> str:
+    context_parts = []
 
-    return "\n\n".join(documents)
+    for c in chunks:
+        context_parts.append(
+              f"{c['text']}"
+        )
 
+    return "\n\n".join(context_parts)
