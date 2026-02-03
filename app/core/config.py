@@ -34,3 +34,8 @@ class ChunkText(BaseModel):
     page: int
     text: str
     file_name: str
+
+class Request(BaseModel):
+    question: str
+    n_results: int = 5
+    files: list[str] | None = None

@@ -150,9 +150,11 @@ async def ingest_file(file: UploadFile = File(...)):
 
     texts = [c.text for c in chunks]
 
+    normalized_name = meta.file_name.strip().lower()
+
     metadatas = [
         {
-        "file_name": meta.file_name,
+        "file_name": normalized_name,
         "page": c.page,
         "file_hash": file_hash
     } for c in chunks

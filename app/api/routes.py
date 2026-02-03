@@ -1,7 +1,7 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, Body
 from app.services.ingestion import ingest_file
 from app.services.query import answer_question
-from app.core.config import MetaFile
+from app.core.config import Request
 
 router = APIRouter()
 
@@ -14,6 +14,9 @@ async def upload_pdf(file: UploadFile = File(...)):
     return {"text": text}
 
 @router.post("/ask")
-async def ask(question: str, n_results, file_name: str | None = None):
+async def ask(payload: Request):
 
-    return answer_question(question=question, n_results=n_results, file_name=file_name)
+    if payload.files:
+        file_names = [f.strip().lower() for f in payload.files]
+        return answer_question(question=payload.question, n_results=payload.n_results, file_names=file_names)
+    return answer_question(question=payload.question, n_results=payload.n_results)

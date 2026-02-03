@@ -3,9 +3,9 @@ from app.services.vectorstore import query_chroma
 from app.services.rag import ask_llm, build_context
 from app.core.config import collection
 
-def answer_question(question: str, n_results: int = 5, file_name: str | None = None) -> str:
+def answer_question(question: str, n_results: int = 5, file_names: list[str] | None = None) -> str:
 
-    chunks = retrieve_chunks(question, n_results=n_results, file_name=file_name)
+    chunks = retrieve_chunks(question, n_results=n_results, file_names=file_names)
 
     if not chunks:
         return{
@@ -24,15 +24,23 @@ def answer_question(question: str, n_results: int = 5, file_name: str | None = N
     }
 
 
-def retrieve_chunks(query: str, n_results: int = 3, file_name: str | None = None):
+def retrieve_chunks(query: str, n_results: int = 3, file_names: list[str] | None = None):
     query_embedding = embed_query(query)
 
     where = None
 
-    if file_name:
-        where = {"file_name": file_name}
+    if file_names:
+        where = {
+            "file_name": {
+                "$in": file_names
+            }
+        }
+
+    print("FILTER:", where)
 
     results = query_chroma(query_embedding=query_embedding, n_results=n_results, where=where)
+
+    print("RAW RESULT:", results)
 
     documents = results["documents"][0]
     metadatas = results["metadatas"][0]
