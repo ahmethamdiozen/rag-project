@@ -14,8 +14,6 @@ async def upload_pdf(file: UploadFile = File(...)):
     return {"text": text}
 
 @router.post("/ask")
-async def ask(question: str):
-    answer = answer_question(question=question)
-    print("ANSWER IN ENDPOINT:", answer, type(answer))
-    return {"answer": answer}
+async def ask(question: str, n_results, file_name: str | None = None):
 
+    return answer_question(question=question, n_results=n_results, file_name=file_name)

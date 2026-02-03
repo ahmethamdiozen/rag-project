@@ -3,15 +3,20 @@ from app.services.vectorstore import query_chroma
 from app.services.rag import ask_llm, build_context
 from app.core.config import collection
 
-def answer_question(question: str) -> str:
+def answer_question(question: str, n_results: int = 5, file_name: str | None = None) -> str:
 
-    chunks = retrieve_chunks(question)
+    chunks = retrieve_chunks(question, n_results=n_results, file_name=file_name)
+
+    if not chunks:
+        return{
+            "answer": "No relevant information found in the selected documents.",
+            "sources": []
+        }
+    
     context = build_context(chunks)
-
     answer = ask_llm(question=question, context=context)
 
     sources = extract_sources(chunks)
-
 
     return {
         "answer": answer,
@@ -19,10 +24,15 @@ def answer_question(question: str) -> str:
     }
 
 
-def retrieve_chunks(query: str, k: int = 3):
+def retrieve_chunks(query: str, n_results: int = 3, file_name: str | None = None):
     query_embedding = embed_query(query)
 
-    results = query_chroma(query_embedding=query_embedding, n_results=k)
+    where = None
+
+    if file_name:
+        where = {"file_name": file_name}
+
+    results = query_chroma(query_embedding=query_embedding, n_results=n_results, where=where)
 
     documents = results["documents"][0]
     metadatas = results["metadatas"][0]
