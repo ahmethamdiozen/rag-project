@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Body
+from fastapi import APIRouter, UploadFile, File
 from app.services.ingestion import ingest_file
 from app.services.query import answer_question
 from app.core.config import Request

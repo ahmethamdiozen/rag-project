@@ -20,7 +20,7 @@ def answer_question(question: str, n_results: int = 5, file_names: list[str] | N
 
     return {
         "answer": answer,
-        "source": sources
+        "sources": sources
     }
 
 
