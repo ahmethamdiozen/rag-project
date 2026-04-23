@@ -48,11 +48,7 @@ def retrieve_chunks(query: str, n_results: int = 3, file_names: list[str] | None
             }
         }
 
-    print("FILTER:", where)
-
     results = query_chroma(query_embedding=query_embedding, n_results=n_results, where=where)
-
-    print("RAW RESULT:", results)
 
     documents = results["documents"][0]
     metadatas = results["metadatas"][0]

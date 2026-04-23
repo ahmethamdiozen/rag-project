@@ -31,19 +31,24 @@ async def load_pdf_to_disk(file: UploadFile) -> MetaFile:
             detail="Only pdf files accepted.")
 
     try:
-        path = UPLOAD_DIR / file.filename
+        safe_name = Path(file.filename).name.replace("..", "").strip()
+        if not safe_name:
+            raise HTTPException(status_code=400, detail="Invalid filename.")
+        path = UPLOAD_DIR / safe_name
 
         with path.open("wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Unexpected error occured. {str(e)}"
         )
-    
+
     return MetaFile(
-        file_name=file.filename,
+        file_name=safe_name,
         content_type=file.content_type,
         file_path=path,
         detail="file saved."
