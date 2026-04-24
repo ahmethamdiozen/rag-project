@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - ALLOWED_ORIGINS=https://rag.ahmethamdiozen.site
+      - ALLOWED_ORIGINS=https://rag.ahmethamdiozen.site,https://www.rag.ahmethamdiozen.site
       - CHROMA_DIR=/app/data/chroma
     volumes:
       - rag_data:/app/data
@@ -22,9 +22,9 @@ services:
     build:
       context: ../rag_frontend
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=https://api.rag.ahmethamdiozen.site
     restart: unless-stopped
-    environment:
-      - NEXT_PUBLIC_API_URL=https://rag.ahmethamdiozen.site/api
     ports:
       - "3000:3000"
     depends_on:
