@@ -3,7 +3,6 @@ from typing import Generator
 from app.services.embedding import embed_query
 from app.services.vectorstore import query_chroma
 from app.services.rag import ask_llm, stream_llm, build_context, is_answer_grounded
-from app.core.config import collection
 
 def answer_question(question: str, n_results: int = 5, file_names: list[str] | None = None) -> str:
 

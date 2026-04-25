@@ -1,5 +1,4 @@
 import os
-import sys
 from unittest.mock import MagicMock, patch
 
 # Set required env vars before any app imports
