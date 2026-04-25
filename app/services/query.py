@@ -1,6 +1,8 @@
+import json
+from typing import Generator
 from app.services.embedding import embed_query
 from app.services.vectorstore import query_chroma
-from app.services.rag import ask_llm, build_context, is_answer_grounded
+from app.services.rag import ask_llm, stream_llm, build_context, is_answer_grounded
 from app.core.config import collection
 
 def answer_question(question: str, n_results: int = 5, file_names: list[str] | None = None) -> str:
@@ -82,3 +84,18 @@ def extract_sources(chunks: list[dict]):
                 "page": c["page"]
             })
     return sources
+
+
+def generate_stream(question: str, n_results: int = 5, file_names: list[str] | None = None) -> Generator[str, None, None]:
+    chunks = retrieve_chunks(question, n_results=n_results, file_names=file_names)
+
+    if not chunks:
+        yield f"data: {json.dumps({'type': 'no_results'})}\n\n"
+        return
+
+    context = build_context(chunks=chunks)
+    sources = extract_sources(chunks=chunks)
+
+    yield from stream_llm(question=question, context=context)
+    yield f"data: {json.dumps({'type': 'sources', 'sources': sources})}\n\n"
+    yield f"data: {json.dumps({'type': 'done'})}\n\n"

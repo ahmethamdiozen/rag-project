@@ -1,6 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi.responses import StreamingResponse
 from app.services.ingestion import ingest_file
-from app.services.query import answer_question
+from app.services.query import answer_question, generate_stream
 from app.core.config import Request, UPLOAD_DIR, chroma_client
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
@@ -29,6 +30,16 @@ async def list_files():
         if file.is_file() and file.suffix.lower() == ".pdf":
             files.append(file.name)
     return files
+
+@router.post("/ask/stream")
+def ask_stream(payload: Request):
+    file_names = [f.strip().lower() for f in payload.files] if payload.files else None
+    return StreamingResponse(
+        generate_stream(question=payload.question, n_results=payload.n_results, file_names=file_names),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
 
 @router.get("/health")
 async def health():
