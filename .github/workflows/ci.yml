@@ -25,7 +25,9 @@ jobs:
         run: ruff check app/
 
       - name: Test
-        run: pytest app/tests/ -v
+        run: python -m pytest app/tests/ -v
+        env:
+          PYTHONPATH: "."
 
   deploy:
     needs: ci
