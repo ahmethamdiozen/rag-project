@@ -1,143 +1,92 @@
-# RAG-based Internal Document Question Answering System
+# RAG Document Q&A — Backend
 
-This project is an internal **Retrieval-Augmented Generation (RAG)** system that enables semantic question answering over private PDF documents.  
-It is designed as a **modular FastAPI backend application** suitable for internal knowledge management use cases.
+FastAPI backend for a cloud-hosted document question-answering system. Upload PDFs, ask natural-language questions, get answers grounded in the source material with page-level citations.
 
----
-
-## Features
-
-- PDF document ingestion with validation and disk persistence  
-- Page-aware text extraction and cleaning  
-- Text chunking with metadata (file name, page number)  
-- Embedding generation using OpenAI embedding models  
-- Persistent vector storage using **ChromaDB**  
-- Semantic similarity search over document chunks  
-- Context-restricted LLM-based question answering  
-- Modular and extensible service-oriented architecture  
+**Live demo:** [rag.ahmethamdiozen.site](https://rag.ahmethamdiozen.site) · **Frontend repo:** [rag-frontend](https://github.com/ahmethamdiozen/rag-frontend)
 
 ---
 
-## System Architecture
+## How it works
 
-```text
-PDF Upload
-   ↓
-Disk Persistence
-   ↓
-Text Extraction (page-based)
-   ↓
-Chunking + Metadata
-   ↓
-Embedding Generation
-   ↓
-Vector Database (Chroma)
-   ↓
-Semantic Retrieval
-   ↓
-LLM Answer Generation
+```
+PDF Upload → Disk + Dedup check → Text extraction (page-aware)
+         → Chunking (600 tokens, 100-token overlap)
+         → OpenAI embeddings → ChromaDB
+         → Semantic retrieval → LLM answer + source citations
 ```
 
-The system ensures that LLM responses are **grounded strictly in retrieved document context**, reducing hallucinations.
+Answers are grounded-checked against retrieved context before sources are returned — if the answer isn't supported by the chunks, sources are omitted.
 
 ---
 
-## Tech Stack
+## Stack
 
-- Python  
-- FastAPI  
-- OpenAI API (Embeddings & Chat Completions)  
-- ChromaDB  
-- pypdf  
-- Pydantic  
-
----
-
-## Project Structure
-
-```bash
-app/
-├── api/
-│   └── routes.py          # API endpoints
-├── services/
-│   ├── ingestion.py       # File upload & PDF processing
-│   ├── embedding.py       # Embedding generation
-│   ├── vector_store.py    # ChromaDB operations
-│   ├── rag.py             # Context building & LLM interaction
-│   └── query.py           # End-to-end query pipeline
-├── core/
-│   └── config.py          # Settings & shared models
-└── main.py
-data/
-├── uploads/               # Uploaded PDF files
-└── chroma/                # ChromaDB files
-```
----
-
-## API Endpoints
-
-### Upload PDF
-```bash
-POST /upload
-```
-Uploads a PDF file, stores it on disk, extracts text, and indexes it into the vector database.
+| Layer | Tech |
+|---|---|
+| API | FastAPI, Uvicorn |
+| Embeddings | OpenAI `text-embedding-3-small` |
+| Vector store | ChromaDB (persistent) |
+| PDF parsing | pypdf |
+| Validation | Pydantic v2 |
 
 ---
 
-### Ask a Question
-```bash
-POST /ask?question=...
-```
-Performs semantic search over indexed documents and returns an LLM-generated answer based on retrieved context.
+## API
 
----
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/upload` | Upload a PDF (max 10 MB) |
+| `POST` | `/ask` | Ask a question, optionally filter by files |
+| `GET` | `/files` | List indexed documents |
+| `GET` | `/health` | Health check (ChromaDB ping) |
 
-## ⚙️ Setup & Run
-
-### 1. Create virtual environment
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
+**POST /ask** body:
+```json
+{
+  "question": "What are the key findings?",
+  "files": ["report.pdf"]
+}
 ```
 
-### 2. Install Dependencies
+---
+
+## Local setup
 
 ```bash
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-```
-
-### 3. Set environment variables
-Create a **.env** file:
-
-```bash
-OPENAI_API_KEY=your_api_key_here
-```
-
-### 4. Run the application
-
-```bash
+echo "OPENAI_API_KEY=sk-..." > .env
 uvicorn app.main:app --reload
 ```
 
-## Design Notes
+---
 
-- The system does **not** rely on high-level frameworks like LangChain to maintain full control over the RAG pipeline.
-- Embedding and query pipelines use the **same embedding model** to ensure vector consistency.
-- Metadata (file name, page number) is preserved to support future features such as source attribution.
+## Docker
+
+```bash
+docker build -t rag-backend .
+docker run -p 8000:8000 -e OPENAI_API_KEY=sk-... rag-backend
+```
+
+For production with persistent storage:
+```bash
+docker compose -f docker-compose.prod.yaml up
+```
 
 ---
 
-## Possible Extensions
+## Tests
 
-- Source citation in answers (file name and page number)
-- Metadata-based filtering (per document or department)
-- Chunk overlap and adaptive chunk sizing
-- Reranking retrieved chunks
-- Authentication and access control for internal use
+```bash
+pip install -r requirements-dev.txt
+pytest app/tests/ -v
+```
 
 ---
 
-## License
+## Environment variables
 
-This project is intended for educational and personal use.
+| Variable | Required | Description |
+|---|---|---|
+| `OPENAI_API_KEY` | Yes | OpenAI API key |
+| `ALLOWED_ORIGINS` | No | Comma-separated CORS origins (default: `http://localhost:3000`) |
