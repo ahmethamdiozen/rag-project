@@ -1,56 +1,58 @@
-# RAG Document Q&A — Backend
+[🇬🇧 English](README.EN.md)
 
-FastAPI backend for a cloud-hosted document question-answering system. Upload PDFs, ask natural-language questions, get answers grounded in the source material with page-level citations.
+# RAG Doküman Soru-Cevap — Backend
 
-**Live demo:** [rag.ahmethamdiozen.site](https://rag.ahmethamdiozen.site) · **Frontend repo:** [rag-frontend](https://github.com/ahmethamdiozen/rag-frontend)
+PDF yükle, doğal dilde soru sor — cevaplar kaynak materyale dayandırılır ve sayfa düzeyinde atıflarla desteklenir. Yüksek seviyeli framework kullanılmadan sıfırdan yazılmış RAG pipeline.
 
----
-
-## How it works
-
-```
-PDF Upload → Disk + Dedup check → Text extraction (page-aware)
-         → Chunking (600 tokens, 100-token overlap)
-         → OpenAI embeddings → ChromaDB
-         → Semantic retrieval → LLM answer + source citations
-```
-
-Answers are grounded-checked against retrieved context before sources are returned — if the answer isn't supported by the chunks, sources are omitted.
+**Canlı demo:** [rag.ahmethamdiozen.site](https://rag.ahmethamdiozen.site) · **Frontend repo:** [rag-frontend](https://github.com/ahmethamdiozen/rag-frontend)
 
 ---
 
-## Stack
+## Nasıl çalışır
 
-| Layer | Tech |
+```
+PDF Yükleme → Disk + Tekrar yükleme kontrolü → Metin çıkarımı (sayfa bazında)
+           → Parçalama (600 token, 100 token örtüşme)
+           → OpenAI embedding → ChromaDB
+           → Anlamsal sorgulama → LLM cevabı + kaynak atıfları
+```
+
+Kaynaklar gösterilmeden önce cevabın gerçekten getirilen chunk'larla desteklendiği ikinci bir LLM çağrısıyla doğrulanır — desteklenmiyorsa kaynaklar gösterilmez (halüsinasyon önleme).
+
+---
+
+## Teknoloji Yığını
+
+| Katman | Teknoloji |
 |---|---|
 | API | FastAPI, Uvicorn |
-| Embeddings | OpenAI `text-embedding-3-small` |
-| Vector store | ChromaDB (persistent) |
-| PDF parsing | pypdf |
-| Validation | Pydantic v2 |
+| Embedding | OpenAI `text-embedding-3-small` |
+| Vektör deposu | ChromaDB (kalıcı) |
+| PDF ayrıştırma | pypdf |
+| Doğrulama | Pydantic v2 |
 
 ---
 
-## API
+## API Uç Noktaları
 
-| Method | Path | Description |
+| Metod | Yol | Açıklama |
 |---|---|---|
-| `POST` | `/upload` | Upload a PDF (max 10 MB) |
-| `POST` | `/ask` | Ask a question, optionally filter by files |
-| `GET` | `/files` | List indexed documents |
-| `GET` | `/health` | Health check (ChromaDB ping) |
+| `POST` | `/upload` | PDF yükle (maks 10 MB) |
+| `POST` | `/ask` | Soru sor, isteğe bağlı dosya filtresi |
+| `GET` | `/files` | İndekslenmiş dokümanları listele |
+| `GET` | `/health` | Sağlık kontrolü (ChromaDB ping) |
 
-**POST /ask** body:
+**POST /ask** gövdesi:
 ```json
 {
-  "question": "What are the key findings?",
-  "files": ["report.pdf"]
+  "question": "Temel bulgular nelerdir?",
+  "files": ["rapor.pdf"]
 }
 ```
 
 ---
 
-## Local setup
+## Yerel Kurulum
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
@@ -68,14 +70,14 @@ docker build -t rag-backend .
 docker run -p 8000:8000 -e OPENAI_API_KEY=sk-... rag-backend
 ```
 
-For production with persistent storage:
+Kalıcı depolama ile production için:
 ```bash
 docker compose -f docker-compose.prod.yaml up
 ```
 
 ---
 
-## Tests
+## Testler
 
 ```bash
 pip install -r requirements-dev.txt
@@ -84,9 +86,9 @@ pytest app/tests/ -v
 
 ---
 
-## Environment variables
+## Ortam Değişkenleri
 
-| Variable | Required | Description |
+| Değişken | Zorunlu | Açıklama |
 |---|---|---|
-| `OPENAI_API_KEY` | Yes | OpenAI API key |
-| `ALLOWED_ORIGINS` | No | Comma-separated CORS origins (default: `http://localhost:3000`) |
+| `OPENAI_API_KEY` | Evet | OpenAI API anahtarı |
+| `ALLOWED_ORIGINS` | Hayır | Virgülle ayrılmış CORS kaynakları (varsayılan: `http://localhost:3000`) |
