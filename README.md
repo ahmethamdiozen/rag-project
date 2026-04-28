@@ -4,7 +4,7 @@
 
 PDF yükle, doğal dilde soru sor — cevaplar kaynak materyale dayandırılır ve sayfa düzeyinde atıflarla desteklenir. Yüksek seviyeli framework kullanılmadan sıfırdan yazılmış RAG pipeline.
 
-**Canlı demo:** [rag.ahmethamdiozen.site](https://rag.ahmethamdiozen.site) · **Frontend repo:** [rag-frontend](https://github.com/ahmethamdiozen/rag-frontend)
+**Canlı demo:** [rag.ahmethamdiozen.com](https://rag.ahmethamdiozen.com) · **Frontend repo:** [rag-frontend](https://github.com/ahmethamdiozen/rag-frontend)
 
 ---
 
