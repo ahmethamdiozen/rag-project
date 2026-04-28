@@ -4,7 +4,7 @@
 
 FastAPI backend for a cloud-hosted document question-answering system. Upload PDFs, ask natural-language questions, get answers grounded in the source material with page-level citations.
 
-**Live demo:** [rag.ahmethamdiozen.site](https://rag.ahmethamdiozen.site) · **Frontend repo:** [rag-frontend](https://github.com/ahmethamdiozen/rag-frontend)
+**Live demo:** [rag.ahmethamdiozen.com](https://rag.ahmethamdiozen.com) · **Frontend repo:** [rag-frontend](https://github.com/ahmethamdiozen/rag-frontend)
 
 ---
 
