@@ -1,6 +1,6 @@
 # RAG Project (+ rag_frontend) — Deployment Roadmap
 
-**Target subdomain**: `rag.ahmethamdiozen.site`
+**Target subdomain**: `rag.ahmethamdiozen.com`
 **Deploy order in pipeline**: 2nd (after clinic-appointment)
 **Scope**: `rag_project/` (FastAPI backend: OpenAI embeddings + ChromaDB + pypdf) **paired with** `rag_frontend/` (Next.js frontend). Deployed together as one app behind a single subdomain.
 
@@ -12,7 +12,7 @@
 
 ## North Star
 
-A cloud-hosted "internal document Q&A" demo. Visitor lands on `rag.ahmethamdiozen.site`, uploads a PDF (or picks from seeded samples), asks a question, gets a grounded answer with **source citations (file + page)**. This is the lightweight, cloud-first RAG — complements `hf-saas` (which is the SaaS framework around RAG) and `rag-mvp` (which is the offline/local version, video-only).
+A cloud-hosted "internal document Q&A" demo. Visitor lands on `rag.ahmethamdiozen.com`, uploads a PDF (or picks from seeded samples), asks a question, gets a grounded answer with **source citations (file + page)**. This is the lightweight, cloud-first RAG — complements `hf-saas` (which is the SaaS framework around RAG) and `rag-mvp` (which is the offline/local version, video-only).
 
 ---
 
@@ -21,7 +21,7 @@ A cloud-hosted "internal document Q&A" demo. Visitor lands on `rag.ahmethamdioze
 ### Backend (`rag_project/`)
 
 - [ ] **Env validation on startup** — `app/core/config.py` must require `OPENAI_API_KEY` (no default). Fail fast on missing.
-- [ ] **CORS allowlist** — add FastAPI CORS middleware restricting to `rag.ahmethamdiozen.site` in prod.
+- [ ] **CORS allowlist** — add FastAPI CORS middleware restricting to `rag.ahmethamdiozen.com` in prod.
 - [ ] **Upload size + type guard** — `POST /upload` currently accepts any PDF. Add max 10 MB, `application/pdf` only, filename sanitization.
 - [ ] **Persistent ChromaDB volume** — today `data/chroma/` is local. In Coolify, mount a persistent volume at `/app/data` so indexes survive restarts.
 - [ ] **`/health` endpoint** — ping OpenAI credential validity (or skip if too noisy), verify ChromaDB accessible, DB if any.
@@ -34,7 +34,7 @@ A cloud-hosted "internal document Q&A" demo. Visitor lands on `rag.ahmethamdioze
   - Upload page: file picker → `POST /upload` with progress
   - Chat page: input + message list, calls `POST /ask?question=...`
   - Source citations render: if backend returns sources, show each with "open PDF at page N" link
-- [ ] **Environment config** — `NEXT_PUBLIC_API_URL=https://rag.ahmethamdiozen.site/api`.
+- [ ] **Environment config** — `NEXT_PUBLIC_API_URL=https://rag.ahmethamdiozen.com/api`.
 - [ ] **Dockerfile** for Next.js — multi-stage, `next build`, `next start` or static export.
 - [ ] **Delete Vercel boilerplate text** from `README.md`.
 
@@ -94,7 +94,7 @@ A cloud-hosted "internal document Q&A" demo. Visitor lands on `rag.ahmethamdioze
 
 - [ ] **Screenshot pack** — landing, upload flow, chat with citation-rich answer, sample PDF view.
 - [ ] **60s video demo** — upload PDF, ask 3 questions, show cited answers.
-- [ ] **Portfolio card on ahmethamdiozen.site**:
+- [ ] **Portfolio card on ahmethamdiozen.com**:
   - Title: "RAG Document QA (cloud)"
   - Tech: FastAPI, OpenAI embeddings + chat, ChromaDB, Next.js
   - Links: live demo, GitHub, video
@@ -124,10 +124,10 @@ A cloud-hosted "internal document Q&A" demo. Visitor lands on `rag.ahmethamdioze
 
 ## Deploy Checklist (Coolify)
 
-1. DNS: A record for `rag.ahmethamdiozen.site`.
+1. DNS: A record for `rag.ahmethamdiozen.com`.
 2. Coolify Redis resource (for rate-limit counters).
 3. Backend service: `rag_project/Dockerfile`, port 8000, env `OPENAI_API_KEY`, `CHROMA_DB_PATH=/app/data/chroma`, persistent volume at `/app/data`.
-4. Frontend service: `rag_frontend/Dockerfile`, `NEXT_PUBLIC_API_URL=https://rag.ahmethamdiozen.site/api`.
+4. Frontend service: `rag_frontend/Dockerfile`, `NEXT_PUBLIC_API_URL=https://rag.ahmethamdiozen.com/api`.
 5. Reverse proxy: `/` → frontend, `/api/*` → backend.
 6. Domain + Let's Encrypt SSL.
 7. Copy pre-seeded PDFs into persistent volume once.
@@ -137,7 +137,7 @@ A cloud-hosted "internal document Q&A" demo. Visitor lands on `rag.ahmethamdioze
 
 ## Demo Setup
 
-- Landing at `rag.ahmethamdiozen.site`.
+- Landing at `rag.ahmethamdiozen.com`.
 - 3 pre-seeded sample PDFs with suggested questions.
 - Users can upload their own (subject to per-IP quota + daily budget cap).
 - README prominently links to `rag-mvp` video for the "fully offline" variant.
